@@ -6,8 +6,8 @@
   <title>Reword</title>
   <meta name="theme-color" content="#F3EBE3">
   
-  <!-- Inline SVG Favicon (Matched exactly to your geometric RE logo) -->
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='white'/%3E%3Cpath d='M20 82V35c0-8.3 6.7-15 15-15h45v13H33c-1.1 0-2 .9-2 2v47H20z M42 45h40v40H42V68h25v-8H42V45z' fill='black'/%3E%3C/svg%3E">
+  <!-- Inline SVG Favicon (Geometric RE logo on dark background) -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%23121212'/%3E%3Cpath d='M20 82V35c0-8.3 6.7-15 15-15h45v13H33c-1.1 0-2 .9-2 2v47H20z M42 45h40v40H42V68h25v-8H42V45z' fill='%23CDA096'/%3E%3C/svg%3E">
   
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -28,10 +28,12 @@
     .dark .bg-\[\#F3EBE3\] { background-color: #0f0f0f !important; }
     .dark .border-\[\#E5D7CC\] { border-color: #333 !important; }
     
-    /* Card depth styles */
     .perspective-1000 { perspective: 1000px; }
     .card-shadow { box-shadow: 0 20px 40px -10px rgba(0,0,0,0.15); }
     .dark .card-shadow { box-shadow: 0 20px 40px -10px rgba(0,0,0,0.5); }
+    
+    .shortcut-badge { font-size: 9px; padding: 1px 4px; border-radius: 4px; background: rgba(0,0,0,0.05); margin-left: 6px; opacity: 0.6; font-weight: 800; border: 1px solid rgba(0,0,0,0.1); }
+    .dark .shortcut-badge { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); }
   </style>
 </head>
 <body>
@@ -235,7 +237,7 @@
           onPointerMove={handlePointerMove} 
           onPointerUp={handlePointerUp} 
           onPointerCancel={handlePointerUp} 
-          className={`absolute w-full h-full rounded-[2rem] card-shadow overflow-hidden bg-white touch-none select-none border border-gray-100`} 
+          className={`absolute w-full h-full rounded-[2rem] card-shadow overflow-hidden bg-white dark:bg-[#1a1a1a] touch-none select-none border border-gray-100 dark:border-white/5`} 
           style={{ 
             zIndex, 
             transform: `translate3d(${index === 0 ? dragX : 0}px, ${translateY}px, 0) scale(${scale}) rotate(${index === 0 ? rotation : 0}deg)`, 
@@ -288,6 +290,8 @@
       const [cardMaxWidth, setCardMaxWidth] = useState(384);
       const [searchTerm, setSearchTerm] = useState("");
       const dragCounter = useRef(0);
+
+      const activeWord = searchTerm.trim() || (queue.length > 0 ? queue[0].name : "");
 
       useEffect(() => {
         const handleTheme = (event) => {
@@ -353,8 +357,26 @@
         }
       }, []);
 
+      // Keyboard support including dictionary shortcuts 1, 2, 3
+      // Works even while typing in search bar
       useEffect(() => {
         const handleKeyDown = (e) => {
+          if (activeWord) {
+            if (e.key === '1') {
+              e.preventDefault(); // Stop '1' from typing into search input
+              window.open(`https://youglish.com/pronounce/${encodeURIComponent(activeWord)}/english`, '_blank');
+              return;
+            } else if (e.key === '2') {
+              e.preventDefault(); // Stop '2' from typing into search input
+              window.open(`https://www.oxfordlearnersdictionaries.com/search/english/?q=${encodeURIComponent(activeWord)}`, '_blank');
+              return;
+            } else if (e.key === '3') {
+              e.preventDefault(); // Stop '3' from typing into search input
+              window.open(`https://context.reverso.net/translation/english-turkish/${encodeURIComponent(activeWord)}`, '_blank');
+              return;
+            }
+          }
+
           if (queue.length === 0 || isFullscreen) return;
           if (e.key === 'ArrowLeft') {
             setQueue(prev => {
@@ -372,9 +394,10 @@
             });
           }
         };
+
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-      }, [queue.length, isFullscreen]);
+      }, [queue.length, isFullscreen, activeWord]);
 
       const downloadKeptList = () => {
         if (kept.length === 0) return;
@@ -390,8 +413,6 @@
         URL.revokeObjectURL(url);
       };
 
-      const activeWord = searchTerm.trim() || (queue.length > 0 ? queue[0].name : "");
-
       return (
         <div className="h-screen w-full bg-[#F3EBE3] text-[#222222] flex flex-col overflow-hidden select-none relative" onDragEnter={handleDragEnter} onDragLeave={handleDragLeave} onDragOver={handleDragOver} onDrop={handleDrop}>
           <header className="px-6 py-4 flex flex-col lg:flex-row items-center justify-between gap-4 z-20 bg-white/50 dark:bg-black/20 backdrop-blur-md border-b border-[#E5D7CC] shadow-sm">
@@ -402,25 +423,25 @@
                     href={`https://youglish.com/pronounce/${encodeURIComponent(activeWord)}/english`} 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="bg-white hover:bg-gray-50 dark:bg-[#1a1a1a] dark:hover:bg-[#222] text-[#CDA096] border border-gray-200 dark:border-white/10 px-4 py-1.5 rounded-full text-sm font-semibold transition-colors shadow-sm"
+                    className="bg-white hover:bg-gray-50 dark:bg-[#1a1a1a] dark:hover:bg-[#222] text-[#CDA096] border border-gray-200 dark:border-white/10 px-4 py-1.5 rounded-full text-sm font-semibold transition-colors shadow-sm flex items-center"
                   >
-                    YouGlish
+                    YouGlish <span className="shortcut-badge">1</span>
                   </a>
                   <a 
                     href={`https://www.oxfordlearnersdictionaries.com/search/english/?q=${encodeURIComponent(activeWord)}`} 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="bg-white hover:bg-gray-50 dark:bg-[#1a1a1a] dark:hover:bg-[#222] text-[#CDA096] border border-gray-200 dark:border-white/10 px-4 py-1.5 rounded-full text-sm font-semibold transition-colors shadow-sm"
+                    className="bg-white hover:bg-gray-50 dark:bg-[#1a1a1a] dark:hover:bg-[#222] text-[#CDA096] border border-gray-200 dark:border-white/10 px-4 py-1.5 rounded-full text-sm font-semibold transition-colors shadow-sm flex items-center"
                   >
-                    Oxford
+                    Oxford <span className="shortcut-badge">2</span>
                   </a>
                   <a 
                     href={`https://context.reverso.net/translation/english-turkish/${encodeURIComponent(activeWord)}`} 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="bg-white hover:bg-gray-50 dark:bg-[#1a1a1a] dark:hover:bg-[#222] text-[#CDA096] border border-gray-200 dark:border-white/10 px-4 py-1.5 rounded-full text-sm font-semibold transition-colors shadow-sm"
+                    className="bg-white hover:bg-gray-50 dark:bg-[#1a1a1a] dark:hover:bg-[#222] text-[#CDA096] border border-gray-200 dark:border-white/10 px-4 py-1.5 rounded-full text-sm font-semibold transition-colors shadow-sm flex items-center"
                   >
-                    Reverso
+                    Reverso <span className="shortcut-badge">3</span>
                   </a>
                 </>
               ) : (
@@ -438,6 +459,7 @@
                   placeholder="Search a word to override links..." 
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
+                  onKeyDown={(e) => { if(e.key === 'Enter') e.target.blur(); }}
                   className="w-full pl-10 pr-4 py-2 bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/10 text-[#222222] dark:text-white rounded-full focus:outline-none focus:border-[#CDA096] dark:focus:border-[#CDA096] transition-colors shadow-sm"
                 />
               </div>
