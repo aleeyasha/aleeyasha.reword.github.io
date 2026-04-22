@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reword</title>
+  <meta name="theme-color" content="#F3EBE3">
+  
+  <!-- Inline SVG Favicon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23222222'/%3E%3Ctext x='50' y='72' font-family='system-ui, -apple-system, sans-serif' font-weight='800' font-size='65' fill='%23CDA096' text-anchor='middle' letter-spacing='-2'%3Ere%3C/text%3E%3C/svg%3E">
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    body { font-family: 'Poppins', sans-serif; background-color: #F3EBE3; margin: 0; padding: 0; color: #222222; transition: background-color 0.3s ease; overflow: hidden; }
+    .dark body { background-color: #0f0f0f; color: #f1f1f1; }
+    .dark .bg-white { background-color: #1a1a1a !important; border-color: #333 !important; }
+    .dark .text-gray-600 { color: #888 !important; }
+    .dark .text-gray-500 { color: #777 !important; }
+    .dark .text-\[\#222222\] { color: #f1f1f1 !important; }
+    .dark h2, .dark h3 { color: #fff !important; }
+    .dark .bg-gray-50 { background-color: #222 !important; }
+    .dark .border-gray-200 { border-color: #333 !important; }
+    .dark .border-gray-100 { border-color: #333 !important; }
+    .dark .bg-\[\#F3EBE3\] { background-color: #0f0f0f !important; }
+    .dark .border-\[\#E5D7CC\] { border-color: #333 !important; }
+    
+    /* Card depth styles */
+    .perspective-1000 { perspective: 1000px; }
+    .card-shadow { box-shadow: 0 20px 40px -10px rgba(0,0,0,0.15); }
+    .dark .card-shadow { box-shadow: 0 20px 40px -10px rgba(0,0,0,0.5); }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useEffect, useRef, useCallback } = React;
+
+    const Icons = {
+      Check: () => ( <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> ),
+      Clock: () => ( <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> ),
+      Upload: ({ width = 32, height = 32 }) => ( <svg xmlns="http://www.w3.org/2000/svg" width={width} height={height} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg> ),
+      FolderPlus: ({ width = 32, height = 32 }) => ( <svg xmlns="http://www.w3.org/2000/svg" width={width} height={height} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path><line x1="12" y1="11" x2="12" y2="17"></line><line x1="9" y1="14" x2="15" y2="14"></line></svg> ),
+      Eye: ({ width = 24, height = 24 }) => ( <svg xmlns="http://www.w3.org/2000/svg" width={width} height={height} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg> ),
+      Close: ({ width = 32, height = 32 }) => ( <svg xmlns="http://www.w3.org/2000/svg" width={width} height={height} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg> ),
+      Moon: () => ( <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg> ),
+      Sun: () => ( <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg> ),
+      Download: ({ width = 20, height = 20 }) => ( <svg xmlns="http://www.w3.org/2000/svg" width={width} height={height} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg> ),
+      PlayCircle: ({ width = 20, height = 20 }) => ( <svg xmlns="http://www.w3.org/2000/svg" width={width} height={height} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><polygon points="10 8 16 12 10 16 10 8"></polygon></svg> ),
+      ZoomIn: ({ width = 20, height = 20 }) => ( <svg xmlns="http://www.w3.org/2000/svg" width={width} height={height} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg> ),
+      ZoomOut: ({ width = 20, height = 20 }) => ( <svg xmlns="http://www.w3.org/2000/svg" width={width} height={height} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg> ),
+      Search: ({ width = 20, height = 20 }) => ( <svg xmlns="http://www.w3.org/2000/svg" width={width} height={height} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg> )
+    };
+
+    const FullscreenViewer = ({ image, onClose, onSwipe }) => {
+      const [dragX, setDragX] = useState(0);
+      const [isDragging, setIsDragging] = useState(false);
+      const [isAnimatingOut, setIsAnimatingOut] = useState(false);
+      const [scale, setScale] = useState(1);
+      const startX = useRef(0);
+      const startTime = useRef(0);
+
+      useEffect(() => {
+        setIsAnimatingOut(false);
+        setDragX(0);
+        setIsDragging(false);
+        setScale(1);
+      }, [image.id]);
+
+      const SWIPE_THRESHOLD = typeof window !== 'undefined' ? window.innerWidth * 0.25 : 100;
+      const MAX_ROTATION = 15;
+
+      const handlePointerDown = (e) => {
+        if (isAnimatingOut || e.target.closest('button')) return;
+        setIsDragging(true);
+        startX.current = e.clientX;
+        startTime.current = Date.now();
+        e.target.setPointerCapture(e.pointerId);
+      };
+
+      const handlePointerMove = (e) => {
+        if (!isDragging) return;
+        setDragX(e.clientX - startX.current);
+      };
+
+      const handlePointerUp = (e) => {
+        if (!isDragging) return;
+        setIsDragging(false);
+
+        const dragDistance = Math.abs(dragX);
+        const timeElapsed = Date.now() - startTime.current;
+
+        if (dragDistance < 10 && timeElapsed < 500) {
+          const clickX = e.clientX;
+          if (clickX < window.innerWidth / 2) {
+            setIsAnimatingOut(true); setDragX(-window.innerWidth);
+            setTimeout(() => onSwipe(image, 'KEEP'), 300);
+          } else {
+            setIsAnimatingOut(true); setDragX(window.innerWidth);
+            setTimeout(() => onSwipe(image, 'LATER'), 300);
+          }
+          return;
+        }
+
+        if (dragX < -SWIPE_THRESHOLD) {
+          setIsAnimatingOut(true); setDragX(-window.innerWidth);
+          setTimeout(() => onSwipe(image, 'KEEP'), 300);
+        } else if (dragX > SWIPE_THRESHOLD) {
+          setIsAnimatingOut(true); setDragX(window.innerWidth);
+          setTimeout(() => onSwipe(image, 'LATER'), 300);
+        } else {
+          setDragX(0);
+        }
+      };
+
+      const rotation = (dragX / window.innerWidth) * MAX_ROTATION;
+      const leftOpacity = Math.min(1, Math.max(0, -dragX / (SWIPE_THRESHOLD * 0.8)));
+      const rightOpacity = Math.min(1, Math.max(0, dragX / (SWIPE_THRESHOLD * 0.8)));
+
+      return (
+        <div className="fixed inset-0 z-[100] bg-[#F3EBE3]/95 dark:bg-[#0f0f0f]/95 backdrop-blur-md flex items-center justify-center p-4 sm:p-8 touch-none select-none" onPointerDown={handlePointerDown} onPointerMove={handlePointerMove} onPointerUp={handlePointerUp} onPointerCancel={handlePointerUp}>
+          <div className="absolute inset-0 bg-green-500/10 pointer-events-none transition-opacity duration-100 z-[101]" style={{ opacity: leftOpacity }} />
+          <div className="absolute inset-0 bg-amber-500/10 pointer-events-none transition-opacity duration-100 z-[101]" style={{ opacity: rightOpacity }} />
+          
+          <div className="absolute top-6 right-6 flex gap-3 z-[103]">
+            <button className="text-gray-600 hover:text-black dark:text-gray-400 dark:hover:text-white transition-colors bg-white shadow-sm p-2 rounded-full" onClick={(e) => { e.stopPropagation(); setScale(prev => Math.max(prev - 0.5, 0.5)); }}>
+              <Icons.ZoomOut width="24" height="24" />
+            </button>
+            <button className="text-gray-600 hover:text-black dark:text-gray-400 dark:hover:text-white transition-colors bg-white shadow-sm p-2 rounded-full" onClick={(e) => { e.stopPropagation(); setScale(prev => Math.min(prev + 0.5, 4)); }}>
+              <Icons.ZoomIn width="24" height="24" />
+            </button>
+            <button className="text-gray-600 hover:text-black dark:text-gray-400 dark:hover:text-white transition-colors bg-white shadow-sm p-2 rounded-full" onClick={onClose}>
+              <Icons.Close width="24" height="24" />
+            </button>
+          </div>
+          
+          <img src={image.url} alt="Fullscreen View" className="max-w-full max-h-full object-contain rounded-lg shadow-2xl relative z-[102] pointer-events-none" style={{ transform: `translate3d(${dragX}px, 0, 0) rotate(${rotation}deg) scale(${scale})`, transition: isDragging ? 'none' : isAnimatingOut ? 'transform 0.3s ease-out' : 'transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1)' }} />
+          
+          <div className="absolute bottom-10 left-0 right-0 flex justify-center gap-12 z-[103] pointer-events-none">
+             <div className={`bg-green-500 text-white p-4 rounded-full shadow-lg transform -rotate-12 transition-opacity ${leftOpacity > 0.1 ? 'opacity-100' : 'opacity-0'}`}><Icons.Check /></div>
+             <div className={`bg-amber-500 text-white p-4 rounded-full shadow-lg transform rotate-12 transition-opacity ${rightOpacity > 0.1 ? 'opacity-100' : 'opacity-0'}`}><Icons.Clock /></div>
+          </div>
+        </div>
+      );
+    };
+
+    const SwipeCard = ({ image, index, onSwipe, onView }) => {
+      const [dragX, setDragX] = useState(0);
+      const [isDragging, setIsDragging] = useState(false);
+      const [isAnimatingOut, setIsAnimatingOut] = useState(false);
+      const [isImageRevealed, setIsImageRevealed] = useState(false);
+      const startX = useRef(0);
+      const startTime = useRef(0);
+      const cardRef = useRef(null);
+
+      const SWIPE_THRESHOLD = typeof window !== 'undefined' ? window.innerWidth * 0.25 : 100;
+      const MAX_ROTATION = 15;
+
+      const handlePointerDown = (e) => {
+        if (index !== 0 || isAnimatingOut) return;
+        setIsDragging(true);
+        startX.current = e.clientX;
+        startTime.current = Date.now();
+        e.target.setPointerCapture(e.pointerId);
+      };
+
+      const handlePointerMove = (e) => {
+        if (!isDragging) return;
+        setDragX(e.clientX - startX.current);
+      };
+
+      const handlePointerUp = (e) => {
+        if (!isDragging) return;
+        setIsDragging(false);
+
+        const dragDistance = Math.abs(dragX);
+        const timeElapsed = Date.now() - startTime.current;
+
+        if (dragDistance < 10 && timeElapsed < 500) {
+          // If it was just a tap, register it as a swipe based on which half of the card was clicked
+          if (cardRef.current) {
+            const rect = cardRef.current.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            if (clickX < rect.width / 2) {
+              setIsAnimatingOut(true); setDragX(-window.innerWidth);
+              setTimeout(() => onSwipe(image, 'KEEP'), 300);
+            } else {
+              setIsAnimatingOut(true); setDragX(window.innerWidth);
+              setTimeout(() => onSwipe(image, 'LATER'), 300);
+            }
+          }
+          return;
+        }
+
+        if (dragX < -SWIPE_THRESHOLD) {
+          setIsAnimatingOut(true); setDragX(-window.innerWidth);
+          setTimeout(() => onSwipe(image, 'KEEP'), 300);
+        } else if (dragX > SWIPE_THRESHOLD) {
+          setIsAnimatingOut(true); setDragX(window.innerWidth);
+          setTimeout(() => onSwipe(image, 'LATER'), 300);
+        } else {
+          setDragX(0); // Snap back
+        }
+      };
+
+      // Trigger swipe from external (like keyboard)
+      useEffect(() => {
+        if (image.forceSwipe) {
+          setIsAnimatingOut(true);
+          setDragX(image.forceSwipe === 'KEEP' ? -window.innerWidth : window.innerWidth);
+          setTimeout(() => onSwipe(image, image.forceSwipe), 300);
+        }
+      }, [image.forceSwipe, image, onSwipe]);
+
+      const rotation = (dragX / window.innerWidth) * MAX_ROTATION;
+      const leftOpacity = Math.min(1, Math.max(0, -dragX / (SWIPE_THRESHOLD * 0.8)));
+      const rightOpacity = Math.min(1, Math.max(0, dragX / (SWIPE_THRESHOLD * 0.8)));
+
+      const scale = index === 0 ? 1 : index === 1 ? 0.95 : 0.9;
+      const translateY = index === 0 ? 0 : index === 1 ? 20 : 40;
+      const zIndex = 10 - index;
+
+      if (index > 2) return null;
+
+      return (
+        <div 
+          ref={cardRef} 
+          onPointerDown={handlePointerDown} 
+          onPointerMove={handlePointerMove} 
+          onPointerUp={handlePointerUp} 
+          onPointerCancel={handlePointerUp} 
+          className={`absolute w-full h-full rounded-[2rem] card-shadow overflow-hidden bg-white touch-none select-none border border-gray-100`} 
+          style={{ 
+            zIndex, 
+            transform: `translate3d(${index === 0 ? dragX : 0}px, ${translateY}px, 0) scale(${scale}) rotate(${index === 0 ? rotation : 0}deg)`, 
+            transition: isDragging ? 'none' : isAnimatingOut ? 'transform 0.3s ease-out' : 'transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1)', 
+            opacity: index > 2 ? 0 : 1 
+          }}>
+          
+          <div className={`absolute inset-0 bg-cover bg-center bg-no-repeat pointer-events-none transition-opacity duration-300 ${isImageRevealed ? 'opacity-100' : 'opacity-0'}`} style={{ backgroundImage: `url(${image.url})` }} />
+          
+          <div className={`absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent pointer-events-none z-10 transition-opacity duration-300 ${isImageRevealed ? 'opacity-100' : 'opacity-0'}`} />
+          
+          <div className={`absolute inset-0 p-8 pointer-events-none flex flex-col items-center z-20 ${isImageRevealed ? 'justify-end pb-12' : 'justify-center'}`}>
+            <h3 className={`font-bold w-full drop-shadow-md transition-all duration-300 text-center ${isImageRevealed ? 'text-white text-xl truncate mb-6' : 'text-[#222222] dark:text-white text-4xl mb-8 whitespace-normal break-words'}`} title={image.name || 'Unnamed Image'}>
+              {image.name || 'Unnamed Image'}
+            </h3>
+            
+            {!isImageRevealed ? (
+              <button 
+                onPointerDown={(e) => e.stopPropagation()} 
+                onClick={(e) => { e.stopPropagation(); setIsImageRevealed(true); }} 
+                className="pointer-events-auto bg-[#CDA096] hover:bg-[#B98A7F] text-white px-8 py-4 rounded-full text-lg font-bold transition-colors shadow-lg flex items-center gap-2">
+                <Icons.Eye width="24" height="24" /> Show Image
+              </button>
+            ) : (
+              <button 
+                onPointerDown={(e) => e.stopPropagation()} 
+                onClick={(e) => { e.stopPropagation(); onView(); }} 
+                className="pointer-events-auto bg-white/20 hover:bg-white/30 backdrop-blur-md text-white px-6 py-3 rounded-full text-md font-semibold transition-colors shadow-lg flex items-center gap-2 border border-white/30">
+                <Icons.Eye width="20" height="20" /> View Fullscreen
+              </button>
+            )}
+          </div>
+          
+          {/* Swipe Indicators */}
+          <div className="absolute inset-0 bg-green-500/30 pointer-events-none flex items-center justify-center transition-opacity duration-100 z-30" style={{ opacity: index === 0 ? leftOpacity : 0 }}>
+            <div className="bg-green-500 text-white p-6 rounded-full shadow-lg transform -rotate-12 scale-150"><Icons.Check /></div>
+          </div>
+          <div className="absolute inset-0 bg-amber-500/30 pointer-events-none flex items-center justify-center transition-opacity duration-100 z-30" style={{ opacity: index === 0 ? rightOpacity : 0 }}>
+            <div className="bg-amber-500 text-white p-6 rounded-full shadow-lg transform rotate-12 scale-150"><Icons.Clock /></div>
+          </div>
+        </div>
+      );
+    };
+
+    function App() {
+      const [queue, setQueue] = useState([]);
+      const [kept, setKept] = useState([]);
+      const [sessionCount, setSessionCount] = useState(0);
+      const [isDragging, setIsDragging] = useState(false);
+      const [isFullscreen, setIsFullscreen] = useState(false);
+      const [cardMaxWidth, setCardMaxWidth] = useState(384);
+      const [searchTerm, setSearchTerm] = useState("");
+      const dragCounter = useRef(0);
+
+      useEffect(() => {
+        const handleTheme = (event) => {
+          if (event.data.type === 'THEME_CHANGE') {
+            if (event.data.isDark) {
+              document.documentElement.classList.add('dark');
+            } else {
+              document.documentElement.classList.remove('dark');
+            }
+          }
+        };
+        window.addEventListener('message', handleTheme);
+        return () => window.removeEventListener('message', handleTheme);
+      }, []);
+
+      const processFiles = (fileList) => {
+        const files = Array.from(fileList).filter(file => file.type.startsWith('image/'));
+        if (files.length === 0) return;
+
+        const newImages = files.map((file, index) => ({
+          id: `upload_${Date.now()}_${index}`,
+          url: URL.createObjectURL(file),
+          name: file.name.replace(/\.[^/.]+$/, ""),
+          file: file // keep reference to original file
+        }));
+        
+        setQueue(prev => {
+          const combined = [...prev, ...newImages];
+          // Shuffle
+          for (let i = combined.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [combined[i], combined[j]] = [combined[j], combined[i]];
+          }
+          return combined;
+        });
+      };
+
+      const handleFileUpload = (e) => {
+        if (!e.target.files?.length) return;
+        processFiles(e.target.files);
+        e.target.value = '';
+      };
+
+      const handleDragEnter = (e) => { e.preventDefault(); dragCounter.current += 1; if (e.dataTransfer.items && e.dataTransfer.items.length > 0) setIsDragging(true); };
+      const handleDragLeave = (e) => { e.preventDefault(); dragCounter.current -= 1; if (dragCounter.current === 0) setIsDragging(false); };
+      const handleDragOver = (e) => e.preventDefault();
+      const handleDrop = (e) => { e.preventDefault(); setIsDragging(false); dragCounter.current = 0; if (e.dataTransfer.files?.length) processFiles(e.dataTransfer.files); };
+
+      const handleSwipe = useCallback((image, action) => {
+        setSessionCount(prev => prev + 1);
+        setSearchTerm(""); // Clear search bar on swipe
+        if (action === 'KEEP') {
+          setQueue(prevQueue => prevQueue.filter(item => item.id !== image.id));
+          setKept(prev => [...prev, image]);
+        } else if (action === 'LATER') {
+          setQueue(prevQueue => {
+            const remaining = prevQueue.filter(item => item.id !== image.id);
+            if (remaining.length === 0) return [{ ...image, forceSwipe: null }]; // Reset if it's the last one
+            const randomIndex = Math.floor(Math.random() * remaining.length) + 1;
+            const newQueue = [...remaining];
+            newQueue.splice(randomIndex, 0, { ...image, forceSwipe: null });
+            return newQueue;
+          });
+        }
+      }, []);
+
+      // Keyboard support
+      useEffect(() => {
+        const handleKeyDown = (e) => {
+          if (queue.length === 0 || isFullscreen) return;
+          if (e.key === 'ArrowLeft') {
+            // Force left swipe (KEEP)
+            setQueue(prev => {
+              if (!prev.length) return prev;
+              const newQueue = [...prev];
+              newQueue[0] = { ...newQueue[0], forceSwipe: 'KEEP' };
+              return newQueue;
+            });
+          } else if (e.key === 'ArrowRight') {
+            // Force right swipe (LATER)
+             setQueue(prev => {
+              if (!prev.length) return prev;
+              const newQueue = [...prev];
+              newQueue[0] = { ...newQueue[0], forceSwipe: 'LATER' };
+              return newQueue;
+            });
+          }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+      }, [queue.length, isFullscreen]);
+
+      const downloadKeptList = () => {
+        if (kept.length === 0) return;
+        const text = kept.map(img => img.name).join('\n');
+        const blob = new Blob([text], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `kept_photos_${new Date().toISOString().split('T')[0]}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      };
+
+      const activeWord = searchTerm.trim() || (queue.length > 0 ? queue[0].name : "");
+
+      return (
+        <div className="h-screen w-full bg-[#F3EBE3] text-[#222222] flex flex-col overflow-hidden select-none relative" onDragEnter={handleDragEnter} onDragLeave={handleDragLeave} onDragOver={handleDragOver} onDrop={handleDrop}>
+          <header className="px-6 py-4 flex flex-col lg:flex-row items-center justify-between gap-4 z-20 bg-white/50 dark:bg-black/20 backdrop-blur-md border-b border-[#E5D7CC] shadow-sm">
+            <div className="flex items-center gap-2 flex-wrap w-full lg:w-auto lg:flex-1">
+              {activeWord ? (
+                <>
+                  <a 
+                    href={`https://youglish.com/pronounce/${encodeURIComponent(activeWord)}/english`} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="bg-white hover:bg-gray-50 dark:bg-[#1a1a1a] dark:hover:bg-[#222] text-[#CDA096] border border-gray-200 dark:border-white/10 px-4 py-1.5 rounded-full text-sm font-semibold transition-colors shadow-sm"
+                  >
+                    YouGlish
+                  </a>
+                  <a 
+                    href={`https://www.oxfordlearnersdictionaries.com/search/english/?q=${encodeURIComponent(activeWord)}`} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="bg-white hover:bg-gray-50 dark:bg-[#1a1a1a] dark:hover:bg-[#222] text-[#CDA096] border border-gray-200 dark:border-white/10 px-4 py-1.5 rounded-full text-sm font-semibold transition-colors shadow-sm"
+                  >
+                    Oxford
+                  </a>
+                  <a 
+                    href={`https://context.reverso.net/translation/english-turkish/${encodeURIComponent(activeWord)}`} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="bg-white hover:bg-gray-50 dark:bg-[#1a1a1a] dark:hover:bg-[#222] text-[#CDA096] border border-gray-200 dark:border-white/10 px-4 py-1.5 rounded-full text-sm font-semibold transition-colors shadow-sm"
+                  >
+                    Reverso
+                  </a>
+                </>
+              ) : (
+                <div className="text-gray-500 font-medium text-sm hidden sm:block">Upload or search words</div>
+              )}
+            </div>
+
+            <div className="w-full lg:w-auto lg:flex-1 flex justify-center max-w-lg mx-auto">
+              <div className="relative w-full">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 dark:text-gray-500">
+                  <Icons.Search width="16" height="16" />
+                </div>
+                <input 
+                  type="text" 
+                  placeholder="Search a word to override links..." 
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/10 text-[#222222] dark:text-white rounded-full focus:outline-none focus:border-[#CDA096] dark:focus:border-[#CDA096] transition-colors shadow-sm"
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-3 items-center justify-end w-full lg:w-auto lg:flex-1">
+              {kept.length > 0 && (
+                <button 
+                  onClick={downloadKeptList}
+                  className="bg-white hover:bg-gray-50 dark:bg-[#1a1a1a] dark:hover:bg-[#222] text-[#CDA096] border border-gray-200 dark:border-white/10 px-4 py-2 rounded-full flex items-center gap-2 text-sm font-semibold transition-colors shadow-sm"
+                  title="Download list of kept files"
+                >
+                  <Icons.Download width="16" height="16" />
+                  <span>Export ({kept.length})</span>
+                </button>
+              )}
+              <button 
+                onClick={() => setCardMaxWidth(prev => Math.max(prev - 80, 240))}
+                className="bg-white hover:bg-gray-50 dark:bg-[#1a1a1a] dark:hover:bg-[#222] text-[#CDA096] border border-gray-200 dark:border-white/10 w-10 h-10 rounded-full flex items-center justify-center transition-colors shadow-sm outline-none"
+                title="Decrease Card Size"
+              >
+                <Icons.ZoomOut />
+              </button>
+              <button 
+                onClick={() => setCardMaxWidth(prev => Math.min(prev + 80, 800))}
+                className="bg-white hover:bg-gray-50 dark:bg-[#1a1a1a] dark:hover:bg-[#222] text-[#CDA096] border border-gray-200 dark:border-white/10 w-10 h-10 rounded-full flex items-center justify-center transition-colors shadow-sm outline-none"
+                title="Increase Card Size"
+              >
+                <Icons.ZoomIn />
+              </button>
+              <button 
+                onClick={() => document.documentElement.classList.toggle('dark')}
+                className="bg-white hover:bg-gray-50 dark:bg-[#1a1a1a] dark:hover:bg-[#222] text-[#CDA096] border border-gray-200 dark:border-white/10 w-10 h-10 rounded-full flex items-center justify-center transition-colors shadow-sm outline-none"
+                title="Toggle Mode"
+              >
+                <span className="dark:hidden"><Icons.Moon /></span>
+                <span className="hidden dark:block"><Icons.Sun /></span>
+              </button>
+              <a 
+                href="https://voscreen.com" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="bg-white hover:bg-gray-50 dark:bg-[#1a1a1a] dark:hover:bg-[#222] text-[#CDA096] border border-gray-200 dark:border-white/10 w-10 h-10 rounded-full flex items-center justify-center transition-colors shadow-sm outline-none"
+                title="Open Voscreen"
+              >
+                <Icons.PlayCircle />
+              </a>
+            </div>
+          </header>
+
+          <main className="flex-1 relative flex items-center justify-center p-4 sm:p-8 overflow-hidden h-full">
+            {queue.length === 0 ? (
+              <div className="flex flex-col items-center justify-center text-gray-500 space-y-6 animate-fade-in w-full h-full">
+                <div className="w-24 h-24 rounded-full bg-white shadow-sm flex items-center justify-center text-[#CDA096] mb-2">
+                  <Icons.Upload width="48" height="48" />
+                </div>
+                <h2 className="text-2xl font-semibold text-[#222222]">Ready to sort</h2>
+                <p className="text-gray-500 max-w-sm text-center">Upload some photos or a folder to start swiping. Left for Keep, Right for Later.</p>
+                <div className="flex flex-col sm:flex-row gap-4 mt-6">
+                  <label className="px-6 py-3 bg-white border border-gray-200 hover:bg-gray-50 text-[#222222] rounded-full font-semibold cursor-pointer transition-all active:scale-95 flex items-center justify-center gap-2 shadow-sm">
+                    <Icons.Upload width="20" height="20" /> Files
+                    <input type="file" multiple={true} accept="image/jpeg, image/png, image/webp, image/*" className="hidden" onChange={handleFileUpload} />
+                  </label>
+                  <label className="px-6 py-3 bg-white border border-gray-200 hover:bg-gray-50 text-[#222222] rounded-full font-semibold cursor-pointer transition-all active:scale-95 flex items-center justify-center gap-2 shadow-sm">
+                    <Icons.FolderPlus width="20" height="20" /> Folder
+                    <input type="file" webkitdirectory="true" directory="true" className="hidden" onChange={handleFileUpload} />
+                  </label>
+                </div>
+                {kept.length > 0 && (
+                  <div className="mt-8 pt-8 border-t border-gray-200 dark:border-gray-800 w-full max-w-md text-center">
+                    <p className="text-sm font-medium mb-3">You kept {kept.length} photos this session.</p>
+                    <button onClick={downloadKeptList} className="text-[#CDA096] hover:underline text-sm font-semibold flex items-center justify-center gap-2 mx-auto">
+                       <Icons.Download width="16" height="16" /> Download Kept List
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="relative w-full aspect-[3/4] sm:aspect-[4/5] perspective-1000 mb-10 transition-all duration-300" style={{ maxWidth: `${cardMaxWidth}px`, maxHeight: '75vh' }}>
+                {[...queue].slice(0, 3).reverse().map((image, i, arr) => (
+                  <SwipeCard key={image.id} image={image} index={arr.length - 1 - i} onSwipe={handleSwipe} onView={() => setIsFullscreen(true)} />
+                ))}
+              </div>
+            )}
+
+            {/* Desktop Helper Hints */}
+            <div className="absolute left-8 xl:left-24 inset-y-0 flex items-center pointer-events-none opacity-0 md:opacity-30 transition-opacity">
+              <div className="flex flex-col items-center gap-3 text-green-500 font-bold tracking-widest bg-white/50 dark:bg-black/50 p-4 rounded-full backdrop-blur-sm">
+                <Icons.Check />
+                <span className="writing-vertical-rl text-lg uppercase hidden lg:block">Keep</span>
+              </div>
+            </div>
+            <div className="absolute right-8 xl:right-24 inset-y-0 flex items-center pointer-events-none opacity-0 md:opacity-30 transition-opacity">
+              <div className="flex flex-col items-center gap-3 text-amber-500 font-bold tracking-widest bg-white/50 dark:bg-black/50 p-4 rounded-full backdrop-blur-sm">
+                <Icons.Clock />
+                <span className="writing-vertical-rl text-lg uppercase hidden lg:block">Later</span>
+              </div>
+            </div>
+
+            {queue.length > 0 && (
+              <div className="absolute bottom-6 left-0 right-0 flex justify-center pointer-events-none z-10">
+                <div className="bg-white/90 dark:bg-[#1a1a1a]/90 backdrop-blur-md px-6 py-3 rounded-full border border-gray-200 text-sm text-gray-500 flex gap-6 shadow-lg">
+                  <span className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-green-500"></span> Kept: <strong className="text-[#222222]">{kept.length}</strong></span>
+                  <span className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-blue-500"></span> Remaining: <strong className="text-[#222222]">{queue.length}</strong></span>
+                </div>
+              </div>
+            )}
+          </main>
+
+          {isDragging && (
+            <div className="absolute inset-0 z-50 bg-[#F3EBE3]/90 dark:bg-[#0f0f0f]/90 backdrop-blur-sm flex items-center justify-center pointer-events-none transition-all duration-200">
+              <div className="bg-white p-10 rounded-[2rem] shadow-2xl flex flex-col items-center border-4 border-dashed border-[#CDA096] scale-105 transition-transform">
+                <div className="text-[#CDA096] mb-4 animate-bounce"><Icons.Upload width="80" height="80" /></div>
+                <h2 className="text-3xl font-bold text-[#222222] mt-2">Drop photos here</h2>
+                <p className="text-gray-500 mt-2 text-lg font-medium">Release to add to your stack</p>
+              </div>
+            </div>
+          )}
+
+          {isFullscreen && queue.length > 0 && (
+            <FullscreenViewer image={queue[0]} onClose={() => setIsFullscreen(false)} onSwipe={(image, action) => { handleSwipe(image, action); setIsFullscreen(false); }} />
+          )}
+        </div>
+      );
+    }
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
